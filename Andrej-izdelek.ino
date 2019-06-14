@@ -4,7 +4,7 @@
 /*-----( Inport library )-----*/
 #include <Servo.h>
 #include <DHT.h>
-#include <OneWire.h> 
+#include <OneWire.h>
 #include <DallasTemperature.h>
 #include <WiFi.h>
 #include <Wire.h>
@@ -27,15 +27,16 @@ int chk; //idk
 
 #define servo 5 //nagib
 
-#define t1 34 //tipki
-#define t2 39
+#define t1 32 //tipki
+#define t2 33
 
 //Vrednosti
-int settemp = 20; //nastavljena temparatura
+int settemp = 30; //nastavljena temparatura
 float temp = 0;//temparatura
 float temp2 = 0;//alarm
 float hum = 0;//vlaga
-bool heat = 0;//zarnice
+bool heat = 0;
+int alarma = 0;
 
 //Wifi
 const char* ssid     = "Valilnica";
@@ -76,8 +77,8 @@ pinMode(Luc, OUTPUT);
 pinMode(redLed, OUTPUT);
 pinMode(greLed, OUTPUT);
 pinMode(servo, OUTPUT);
-pinMode(t1, INPUT_PULLUP);
-pinMode(t2, INPUT_PULLUP);
+pinMode(t1, INPUT_PULLDOWN);
+pinMode(t2, INPUT_PULLDOWN);
 
 //Wifi
 // Connect to Wi-Fi network with SSID and password
@@ -116,6 +117,8 @@ delay(2000);
 void setdata(){
  //plus
 plin = digitalRead(t2);
+Serial.println("Senzor: ");
+Serial.print(plin);
   if(plin == false){ //false, ce je kliknjen, kr pac Arduino
   if(plkl == 0){
     settemp= settemp + 1;
@@ -149,6 +152,7 @@ void sensor1(){
 /********************************************************************/
 // Serial.print("Backup temp. is: "); 
  //Serial.print(sensors.getTempCByIndex(0));
+ temp2 = sensors.getTempCByIndex(0);
   }
   //temp + hum
   hum = dht.readHumidity();
@@ -214,6 +218,22 @@ void webpage(){
   }
   
 void output(){
+  //                                                                     Gretje
+  if(temp<=settemp-0.5){
+    heat = 1;
+    }
+  if(temp>=settemp+0.5){
+    heat = 0;
+    }
+  //                                                                     Varnost
+  if(temp-temp2>=2.5||temp-temp2<=-2.5){   //
+    Serial.println("ALARM!!!!!!!");
+    Serial.println("Temp: ");
+    Serial.println(temp);
+    Serial.println("Temp2: ");
+    Serial.println(temp2);
+    alarma = 1;
+    }
   //                                                                     NAGIB VSAKE POL URE
   currentMillis = millis();
   if(currentMillis == oldMillis + 1800000){ //mine pol ure     /   
@@ -236,6 +256,14 @@ void output(){
     }
     }
                                     //                                      REGULACIJA TEMPARATURE
+   if(heat == 1){
+   digitalWrite(Luc, HIGH);
+ //  Serial.println("GRETJE ON");
+   }
+   if(heat == 0){
+   digitalWrite(Luc, LOW);
+  // Serial.println("GRETJE OFF");
+   }
   }
   
 void prikaz(){
@@ -249,5 +277,20 @@ lcd.setCursor(0,1);
 lcd.print("Temp. :");//Druga vrstica
 lcd.print(temp);
 lcd.print(" C    ");
+//                           GREEN LED
+digitalWrite(greLed, HIGH);
+delay(100);
+digitalWrite(greLed, LOW);
+
+//          ALARM
+if(alarma == 1){
+  while(true){
+    Serial.println("ALARM!!!!!!!");
+    delay(100);
+    digitalWrite(redLed, HIGH);
+    delay(100);
+    digitalWrite(redLed, LOW);
+    }
+  }
 
 }
