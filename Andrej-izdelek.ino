@@ -1,6 +1,4 @@
 
-/* http://www.electronoobs.com */
-
 /*-----( Inport library )-----*/
 #include <Servo.h>
 #include <DHT.h>
@@ -27,8 +25,8 @@ int chk; //idk
 
 #define servo 5 //nagib
 
-#define t1 32 //tipki
-#define t2 33
+#define t1 18 //tipki
+#define t2 19
 
 //Vrednosti
 int settemp = 30; //nastavljena temparatura
@@ -37,6 +35,7 @@ float temp2 = 0;//alarm
 float hum = 0;//vlaga
 bool heat = 0;
 int alarma = 0;
+int alc = 0;
 
 //Wifi
 const char* ssid     = "Valilnica";
@@ -105,14 +104,16 @@ mikl = 0;
 }
 
 void loop() {
-  Serial.println("running...");
-  Serial.println(settemp);
+  Serial.println("Temp: ");
+  Serial.print(temp);
+  Serial.println("Temp2: ");
+  Serial.print(temp2);
 setdata();
 sensor1();
 webpage();
 output();
 prikaz();
-delay(2000); 
+delay(200); 
 }
 void setdata(){
  //plus
@@ -227,6 +228,8 @@ void output(){
     }
   //                                                                     Varnost
   if(temp-temp2>=2.5||temp-temp2<=-2.5){   //
+    alc++;
+    if(alc==3){
     Serial.println("ALARM!!!!!!!");
     Serial.println("Temp: ");
     Serial.println(temp);
@@ -234,6 +237,9 @@ void output(){
     Serial.println(temp2);
     alarma = 1;
     }
+    }else{
+      alc=0;
+      }
   //                                                                     NAGIB VSAKE POL URE
   currentMillis = millis();
   if(currentMillis == oldMillis + 1800000){ //mine pol ure     /   
@@ -288,8 +294,13 @@ if(alarma == 1){
     Serial.println("ALARM!!!!!!!");
     delay(100);
     digitalWrite(redLed, HIGH);
+    lcd.setCursor(0,0);
+    lcd.print("   Napaka!!!");
     delay(100);
     digitalWrite(redLed, LOW);
+    lcd.setCursor(0,1);
+    lcd.print("   Napaka!!!");
+    lcd.clear();
     }
   }
 
