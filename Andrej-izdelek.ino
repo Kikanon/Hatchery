@@ -53,7 +53,7 @@ DallasTemperature sensors(&oneWire);
 //servo
 Servo myservo;
 int pos;
-bool nagib = 1;
+bool nagib = 0;
 //input
 bool plkl;
 bool mikl;
@@ -97,10 +97,17 @@ dht.begin();
 
 //servo
   myservo.attach(servo);
-  myservo.write(pos);
+  myservo.write(80);
 //input
 plkl = 0;
 mikl = 0;
+
+
+ for (pos = 80; pos <= 100; pos += 1) { // sprememba nagiba 0->20
+     // in steps of 1 degree
+     myservo.write(pos);              // tell servo to go to position in variable 'pos'
+     delay(100);                       // waits 15ms for the servo to reach the position
+     }
 }
 
 void loop() {
@@ -154,6 +161,7 @@ void sensor1(){
 // Serial.print("Backup temp. is: "); 
  //Serial.print(sensors.getTempCByIndex(0));
  temp2 = sensors.getTempCByIndex(0);
+ temp2 = temp2 - 2; //zarad napake
   }
   //temp + hum
   hum = dht.readHumidity();
@@ -229,7 +237,7 @@ void output(){
   //                                                                     Varnost
   if(temp-temp2>=2.5||temp-temp2<=-2.5){   //
     alc++;
-    if(alc==3){
+    if(alc==5){
     Serial.println("ALARM!!!!!!!");
     Serial.println("Temp: ");
     Serial.println(temp);
